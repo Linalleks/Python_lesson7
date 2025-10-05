@@ -1,13 +1,9 @@
 import ptbot
-from dotenv import load_dotenv
-import os
+from decouple import config
 from pytimeparse import parse
 
 
-load_dotenv()
-TG_TOKEN = os.environ['TG_TIMER_BOT_TOKEN']
-TG_CHAT_ID = os.environ['TG_CHAT_ID']
-bot = ptbot.Bot(TG_TOKEN)
+bot = ptbot.Bot(config('TG_TIMER_BOT_TOKEN'))
 
 
 def render_progressbar(total, iteration, prefix='',
@@ -21,6 +17,8 @@ def render_progressbar(total, iteration, prefix='',
 
 
 def notify_progress(secs_left, total, author_id, message_id):
+    if secs_left == total:
+        return
     answer = f"Осталось секунд: \
         {secs_left}\n{render_progressbar(total, secs_left)}"
     bot.update_message(author_id, message_id, answer)
@@ -28,22 +26,13 @@ def notify_progress(secs_left, total, author_id, message_id):
         bot.send_message(author_id, "Время вышло")
 
 
-def notify_start(author_id, incoming_time):
+def notify_start(author_id, user_message):
     message_id = bot.send_message(author_id, 'Запускаю таймер...')
-    bot.create_timer(
-        1,
-        start_timer,
-        incoming_time=incoming_time,
-        author_id=author_id,
-        message_id=message_id
-    )
-
-
-def start_timer(incoming_time, author_id, message_id):
+    set_time = parse(user_message) + 1
     bot.create_countdown(
-        parse(incoming_time),
+        set_time,
         notify_progress,
-        total=parse(incoming_time),
+        total=set_time,
         author_id=author_id,
         message_id=message_id
     )
