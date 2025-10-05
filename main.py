@@ -3,9 +3,6 @@ from decouple import config
 from pytimeparse import parse
 
 
-bot = ptbot.Bot(config('TG_TIMER_BOT_TOKEN'))
-
-
 def render_progressbar(total, iteration, prefix='',
                        suffix='', length=15, fill='█', zfill='░'):
     iteration = min(total, iteration)
@@ -16,7 +13,7 @@ def render_progressbar(total, iteration, prefix='',
     return '{0} |{1}| {2}% {3}'.format(prefix, pbar, percent, suffix)
 
 
-def notify_progress(secs_left, total, author_id, message_id):
+def notify_progress(secs_left, bot, total, author_id, message_id):
     if secs_left == total:
         return
     answer = f"Осталось секунд: \
@@ -26,12 +23,13 @@ def notify_progress(secs_left, total, author_id, message_id):
         bot.send_message(author_id, "Время вышло")
 
 
-def notify_start(author_id, user_message):
+def notify_start(author_id, user_message, bot):
     message_id = bot.send_message(author_id, 'Запускаю таймер...')
     set_time = parse(user_message) + 1
     bot.create_countdown(
         set_time,
         notify_progress,
+        bot=bot,
         total=set_time,
         author_id=author_id,
         message_id=message_id
@@ -39,7 +37,8 @@ def notify_start(author_id, user_message):
 
 
 def main():
-    bot.reply_on_message(notify_start)
+    bot = ptbot.Bot(config('TG_TIMER_BOT_TOKEN'))
+    bot.reply_on_message(notify_start, bot=bot)
     bot.run_bot()
 
 
