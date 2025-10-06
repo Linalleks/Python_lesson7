@@ -19,8 +19,6 @@ def notify_progress(secs_left, bot, total, author_id, message_id):
     answer = f"Осталось секунд: \
         {secs_left}\n{render_progressbar(total, secs_left)}"
     bot.update_message(author_id, message_id, answer)
-    if secs_left == 0:
-        bot.send_message(author_id, "Время вышло")
 
 
 def notify_start(author_id, user_message, bot):
@@ -34,6 +32,11 @@ def notify_start(author_id, user_message, bot):
         author_id=author_id,
         message_id=message_id
     )
+    bot.create_timer(set_time, notify_end, author_id=author_id, bot=bot)
+
+
+def notify_end(author_id, bot):
+    bot.send_message(author_id, "Время вышло")
 
 
 def main():
